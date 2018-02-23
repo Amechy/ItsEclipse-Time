@@ -1,0 +1,44 @@
+package socket;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
+import java.util.Scanner;
+
+import javax.xml.stream.util.EventReaderDelegate;
+
+
+public class Cliente {
+
+	static final String HOST = "192.168.3.57";
+	static final int PUERTO = 5000;
+	Scanner entrada;
+	
+	
+	public Cliente() {
+		try {
+			Socket sckClient = new Socket(HOST, PUERTO);	
+			InputStreamReader inputStreamReader = new InputStreamReader(sckClient.getInputStream(),"utf-8");
+			BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+			
+			System.out.println(bufferedReader.readLine());
+			
+			sckClient.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public static void main(String[] args) {				
+			new Cliente();		
+	}
+	
+	private String LeerMensaje() {
+		System.out.println("introduce el mensaje para enviar");
+	
+		String mensaje = entrada.nextLine();
+		
+	}
+
+}

@@ -1,0 +1,73 @@
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Signature;
+import java.util.Base64;
+
+
+
+public class FirmaDigital {
+	private static final String ALG1 = "DSA"; //Más rapido para firmar
+	private static final String ALG2 = "RSA"; //Más rápido para verificar
+	
+	private static final String PROTO1 = "DSA"; 
+	private static final String PROTO2 = "SHA256WithRSA";
+	
+	//DSA solo se puede usar para firmar o verificar.
+	//RSA puede ser usado para encriptar y desencriptar también.
+	
+	private static String firmar(String mensaje, KeyPair clave)throws Exception{
+		System.out.println("Creando un objeto de tipo Signature");
+		Signature firmaContainer=Signature.getInstance(ALG1);
+		
+		System.out.println("Firmando el mensaje con la parte privada de la clave asimétrica.");
+		firmaContainer.initSign(clave.getPrivate());
+		
+		firmaContainer.update(mensaje.getBytes());
+		byte[] firma = firmaContainer.sign();
+		
+		//Devolvemos el mensaje firmado. Siempre hay que ponerlo en base64 para que lo verifique.
+		return Base64.getEncoder().encodeToString(firma);
+	}
+	private static boolean esFirmaValida(String mensajeEnClaro,String firma,KeyPair clave) throws Exception{
+		System.out.println("Vamo a verificá");
+		Signature firmaContainer=Signature.getInstance(ALG1);
+		
+		byte[] mensajeBytes = Base64.getDecoder().decode(firma.getBytes("utf-8"));
+		
+		
+		System.out.println("Verificando firma ");
+		firmaContainer.initVerify(clave.getPublic());
+		
+
+		firmaContainer.update(mensajeEnClaro.getBytes());
+		
+		return firmaContainer.verify(mensajeBytes);	
+	}
+	
+	
+	public static void main(String[] args) throws Exception{
+		String mensaje = "En un lugar de la mansha";
+		
+		System.out.println("Obteniendo generador de claves: "+ALG1);
+		KeyPairGenerator keyPair = KeyPairGenerator.getInstance(ALG1);
+		KeyPair clave = keyPair.generateKeyPair();
+		
+		System.out.println("Firmando el mensaje '"+mensaje+"' con la parte privada de la clave");
+		
+		String firma = firmar(mensaje, clave);
+		
+		System.out.println("Resltado firma "+firma);
+		System.out.println("Comprobada");
+		
+		if (esFirmaValida(mensaje, firma, clave)) {
+			System.out.println("Verificado OK");
+			
+		}else {
+			System.out.println("Fallo al verificar");
+		}
+		
+		
+
+	}
+
+}

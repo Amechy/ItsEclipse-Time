@@ -1,0 +1,43 @@
+package amechine;
+
+import java.io.IOException;
+
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+
+class SRVSSLHilo extends Thread{
+	SSLSocket miSocket;
+	public SRVSSLHilo(SSLSocket unSocket) {
+		this.miSocket = unSocket;
+	}
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		super.run();
+	}
+}
+
+public class SRVSSL {
+	private static int PUERTO=5555;
+	public SRVSSL() throws IOException {
+		System.out.println("Obteniendo factoria del socket para el servidor");
+		SSLServerSocketFactory serverSocketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+		
+		System.out.println("Creando el socket...");
+		SSLServerSocket serverSocket = (SSLServerSocket) serverSocketFactory.createServerSocket(PUERTO);
+		
+		while (true) {
+			System.out.println("Aceptando conexiones");
+			SSLSocket socketAntencion = (SSLSocket) serverSocket.accept();
+			
+			new SRVSSLHilo(socketAntencion).start();
+		}
+	}
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+	}
+
+}

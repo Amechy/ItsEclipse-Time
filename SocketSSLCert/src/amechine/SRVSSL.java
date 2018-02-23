@@ -1,0 +1,80 @@
+package amechine;
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+
+class SRVSSLHilo extends Thread{
+	SSLSocket miSocket;
+	public SRVSSLHilo(SSLSocket unSocket) {
+		this.miSocket = unSocket;
+	}
+	@Override
+	public void run() {
+		InputStreamReader is;
+		try {
+			is = new InputStreamReader(miSocket.getInputStream(),"utf-8");
+			BufferedReader br = new BufferedReader(is);
+			
+			String mensajeRecibido = br.readLine();
+			System.out.println("Mensaje recibido desde el cliente: "+mensajeRecibido);
+			
+			//Enviamos como respuesta el mensaje en hash sha-256
+			PrintWriter pw = new PrintWriter(new BufferedOutputStream(miSocket.getOutputStream()),true);
+			
+			byte[] mensajeEnBytes = mensajeRecibido.getBytes("utf-8");
+			MessageDigest sha = MessageDigest.getInstance("SHA-256");
+			
+			pw.print(sha.digest(mensajeEnBytes));
+			pw.flush();
+			pw.close();
+			
+			
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+	}
+}
+
+public class SRVSSL {
+	private static int PUERTO=5555;
+	public SRVSSL() throws IOException {
+		System.out.println("Obteniendo factoria del socket para el servidor");
+		SSLServerSocketFactory serverSocketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+		
+		System.out.println("Creando el socket...");
+		SSLServerSocket serverSocket = (SSLServerSocket) serverSocketFactory.createServerSocket(PUERTO);
+		
+		while (true) {
+			System.out.println("Aceptando conexiones");
+			SSLSocket socketAntencion = (SSLSocket) serverSocket.accept();
+			
+			new SRVSSLHilo(socketAntencion).start();
+		}
+	}
+
+	public static void main(String[] args) throws IOException {
+		System.setProperty("javax.net.ssl.keyStore", "./certs/AlmacenSRV");
+		System.setProperty("javax.net.ssl.keyStorePassword", "ies29700412");
+		System.setProperty("javax.net.ssl.trustStore", "./certs/AlmacenSRV");
+		System.setProperty("javax.net.ssl.trustStorePassword", "ies29700412");
+		new SRVSSL();
+
+	}
+
+}

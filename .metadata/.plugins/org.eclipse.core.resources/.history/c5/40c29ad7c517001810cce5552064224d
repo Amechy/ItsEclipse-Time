@@ -1,0 +1,20 @@
+package amechine;
+
+import javax.net.ssl.SSLSocketFactory;
+
+public class cli_ssl {
+	static final String DESTINO =  "localhost";
+	static final int PUERTO =  5555;
+	
+	public cli_ssl(){
+		System.out.println("Obteniendo factoria de socket de cliente");
+		SSLSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+		
+	}
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+	}
+
+}

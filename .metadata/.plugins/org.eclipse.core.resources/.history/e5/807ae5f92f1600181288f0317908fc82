@@ -1,0 +1,182 @@
+package amechi;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
+
+public class Cliente {
+	private static final String POTENCIA = "a";
+	private static final String SIGUIENTE_PRIMO = "b";
+	private static final String RAIZ_CUADRADA = "c";
+	private static final String CERRAR_CONEXION = "q";
+	private static final int PUERTO_SERVIDOR = 8888; // Puerto por defecto del servidor
+
+	public static void main(String[] args) {
+
+		String ip = ""; // IP del servidor
+		String nombreCliente = "";// Nombre el cliente
+
+		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+
+		// Pedimos la ip y el puerto del servidor y el nombre del cliente
+		try {
+			// Ponemos unas instrucciones
+			System.out.println(
+					"***  I N S T R U C C I O N E S  ***\n\n" + "-> Púlsa intro si el servidor está es localhost.\n\n");
+
+			// Pedimos la ip del servidor
+			System.out.print("\n\nEnter ip of the server: ");
+			ip = bufferedReader.readLine();
+			if (ip.equals("")) {
+				ip = "127.0.0.1"; // Ip de localhost por defecto
+
+			}
+
+			// Pedimos el nombre del cliente
+			nombreCliente = "";
+			do {
+				System.out.print("Introduce tu nombre (nombre del cliente).\n");
+				nombreCliente = bufferedReader.readLine();
+			} while (nombreCliente.equals("")); // Es obligatorio un nombre del cliente
+
+			// Creamos el socket
+			Socket socket = new Socket(ip, PUERTO_SERVIDOR);
+
+			System.out.print("\n\n\t\tConexión establecida con éxito.\n\t\t-------------------------------\n");
+
+			String opcion = ""; // Opcione elegida por el cliente
+			String exponente = ""; // Exponente para potencia
+			String numero = ""; // Número que nos servirá para hacer los tres cálculos
+			String resultado = "";
+
+			// Flujo de datos entre el servidor y el cliente
+			InputStream in = socket.getInputStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(in));
+			OutputStream os = socket.getOutputStream();
+			PrintWriter pr = new PrintWriter(os, true);
+
+			// Enviamos el nombre del cliente al servidor
+			pr.println(nombreCliente);
+
+			while (!opcion.equals(CERRAR_CONEXION)) {
+				exponente = "";
+				numero = "";
+				resultado = "";
+
+				// Mpstramos el menú
+				System.out.println(
+					"\n\n+++ Calculadora remota +++\r\n\n" + 
+					"a. Potencia. \r\n" + 
+					"b. Siguiente número primo. \r\n"+
+					"c. Raíz cuadrada. \r\n" + 
+					"q. Terminar la conexión. \r\n");
+				// Leemos la opcion del cliente
+				opcion = bufferedReader.readLine().toLowerCase();
+
+				switch (opcion) {
+				case CERRAR_CONEXION:
+					pr.println(CERRAR_CONEXION);
+					socket.close();
+
+					System.out.println("\n\n\t\tConexión cerrada con éxito.\n\t\t---------------------------\n");
+					break;
+				case POTENCIA:
+
+					System.out.println("\n\t\t+++ POTENCIA+++\n");
+
+					System.out.println("Por favor introduzca la BASE: \n\n");
+					numero = bufferedReader.readLine().trim();
+					System.out.println("Por favor introduzca el EXPONENTE: \n\n");
+					exponente = bufferedReader.readLine().trim();
+
+					if (isNumeric(numero) && isNumeric(exponente)) {
+						pr.println(POTENCIA);
+
+						// Enviamos al servidor para que haga la potencia.
+						pr.println(numero);
+						pr.println(exponente);
+
+						// Recibimos el resultado y lo mostramos por pantalla
+						resultado = br.readLine();
+
+						System.out.println("\n\nLa potencia de " + numero + "^" + exponente + " es: " + resultado);
+					} else {
+						System.err.println("\n\nSolo se pueden introducir números.\n\nIntro para seguir...");
+					}
+					break;
+				case SIGUIENTE_PRIMO:
+
+					System.out.println("\n\t\t+++ PROXIMO NUMERO PRIMO MAYOR A N +++\n");
+
+					System.out.println("Por favor introduzca el número: \n\n");
+					numero = bufferedReader.readLine().trim();
+					if (isNumeric(numero)) {
+						pr.println(SIGUIENTE_PRIMO); // Enviamos al servidor la opción que ha elegido el cliente.
+
+						// Enviamos al servidor para que haga la operación.
+						pr.println(numero);
+
+						// Recibimos el resultado y lo mostramos por pantalla
+						resultado = br.readLine();
+						System.out.println("\n\nEl próximo número primo mayor que " + numero + " es: " + resultado);
+						break;
+					} else {
+						System.err.println("\n\nSolo se pueden introducir números enteros para este caso.\n\nIntro para seguir...");
+					}
+					break;
+				case RAIZ_CUADRADA:
+					System.out.println("\n\t\t+++ RAÍZ CUADRADA +++\n");
+
+					System.out.println("Por favor introduzca el número: \n\n");
+					numero = bufferedReader.readLine().trim();
+
+					if (isNumeric(numero)) {
+						pr.println(RAIZ_CUADRADA);
+
+						// Enviamos al servidor para que haga la operación.
+						pr.println(numero);
+
+						// Recibimos el resultado y lo mostramos por pantalla
+						resultado = br.readLine();
+						System.out.println("\n\nLa raíz cuadrada de " + numero + " es: " + resultado);
+
+					} else {
+						System.err.println("\n\nSolo se pueden introducir números.\n\nIntro para seguir...");
+					}
+					break;
+
+				}
+			}
+		} catch (IOException e) {
+			System.out.println("Ha ocurrido algún error; de entrada /salida.");
+			System.out.println("Compruebe que dirección ip está bien y que el servidor esté encendido.\n\nSaliendo de la aplicación...");
+			System.exit(0);
+
+
+		} catch (NumberFormatException e) {
+			System.out.println("Números inválidos");
+		} catch (Exception e) {
+			System.out.println("Ha ocurrido un error.");
+
+		}
+		System.out.println("Terminando el main...");
+
+	}
+
+	public static boolean isNumeric(String cadena) {
+
+		boolean resultado;
+
+		try {
+			Integer.parseInt(cadena);
+			resultado = true;
+		} catch (NumberFormatException excepcion) {
+			resultado = false;
+		}
+
+		return resultado;
+	}
+}
